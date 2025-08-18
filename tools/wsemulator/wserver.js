@@ -191,7 +191,7 @@ function sendStatus() {
         "fs_block_size": 8192,
 
         "wifi": {
-            "hostname": "OnAirSimulator",
+            "hostname": "SocketSimulator",
             "accesspoint": true,
             "stationmode": false,
             "isConnected": true,
@@ -209,6 +209,9 @@ function sendStatus() {
             "ButtonPressed": "0",
             "RestartWiFi": "0",
             "DebugMode": "0"
+        },
+        "dew": {
+
         },
         "onair": {
             "isMicOn": false,
@@ -241,15 +244,16 @@ function sendStatus() {
             "power": 4.17,
             "available": true,
             "raw": 973
-          },
-          "rf433": {
+        },
+        "rf433": {
             "enabled": true,
             "msgs": [
                 { "on": 4333356,"msg": 1, "type":0 },
                 { "on": 4333362,"msg": 0, "type":1 }
             ],
-          }
+        }
     };
+    
     let oMissing = {
         "ssid": "emuSSID",
         "dns": "8.8.8.8",
