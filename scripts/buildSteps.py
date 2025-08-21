@@ -10,7 +10,13 @@ INCLUDE_FILE     = os.path.join(env.subst("$PROJECT_INCLUDE_DIR"),"ProgVersion.h
 VERSION_FILE     = os.path.join(env.subst("$PROJECT_DATA_DIR"),"prog_ver.json")
 FIRMWARE_SOURCE  = os.path.join(env.subst("$BUILD_DIR"), "firmware.bin")
 FIRMWARE_PATH    = os.path.join("bin")
+PROJECT_DIR      = os.path.normpath(env.subst("$PROJECT_DIR"))
+PACKAGE_FILE	 = os.path.join(env.subst("$PROJECT_DIR"),"package.json")
 PARENT_PATH_NAME = os.path.basename(os.path.normpath(env.subst("$PROJECT_DIR")))
+
+oPackageFile = {
+	"version": "0.1.0"
+}
 
 oDefaultVersion = {
 	"name": PARENT_PATH_NAME,
@@ -80,16 +86,26 @@ def before_build(source, target, env):
 	# os.chdir("tools/webfilesbuilder/")
 	# os.system("echo current dir :&& pwd && npm run start")
 	# os.chdir(strCWD)
+	print(" *** checking version number...")
+	with open(VERSION_FILE, 'r') as oFP:
+		oVersion = json.load(oFP)
+		oFP.close()
+	
+	if(oPackageFile["version"]):
+		print(f'Current package version  : {oPackageFile["version"]}')
+		tVersion = oPackageFile["version"].split(".")
+		if(len(tVersion) == 3):
+			oVersion["major"] 	= tVersion[0]
+			oVersion["minor"] 	= tVersion[1]
+			oVersion["patch"]	= tVersion[2]	
+		
 
 	if strEnv.endswith("_debug"):
-		print(f' - Debug environment version detected, no further actions... : {strEnv}')
+		print(f' - Debug version, no further actions... : {strEnv}')
 	else:
 		print("-------------------------------------------------")
 		print(f'* building new version string for env : {strEnv}')
 		print("-------------------------------------------------")
-		with open(VERSION_FILE, 'r') as oFP:
-			oVersion = json.load(oFP)
-			oFP.close()
 
 		oVersion["build"] = oVersion["build"] + 1
 		with open(VERSION_FILE, 'w') as oFP:
@@ -101,12 +117,20 @@ def before_build(source, target, env):
 
 		writeVersionIncludeFile(oVersion)
 
+	print(f'Using application version: {oVersion["major"]}.{oVersion["minor"]}.{oVersion["patch"]}.{oVersion["build"]}')
+
 print("---------------------------------------------------------------")
 print("ESP build script for PlatformIO (c) LSC-Labs 2024 - P.Liebl" )
 print(" - increments the build number in version and include file")
 print(" - stores the firmware file after building the bin.")
 print(" - Incrementing will only executed if it is not a '*_debug' env")
 print("---------------------------------------------------------------")
+
+if os.path.exists(PACKAGE_FILE):
+	with open(PACKAGE_FILE, 'r') as oFP:
+		oPackageFile = json.load(oFP)
+		oFP.close()
+
 
 # Default Version Object - if not exists
 if not os.path.exists(VERSION_FILE):
