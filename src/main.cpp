@@ -4,15 +4,20 @@
 #include <Appl.h>
 #include <WiFiController.h>
 #include <MQTTController.h>
+#include <WebSocket.h>
+#include <WebServer.h>
+#include <WebRoutes.h>
 #include <DevelopmentHelper.h>
+#include <DewSensor.h>
+#include <DewPointApp.h>
 
 
 CFS oFS;
 CWiFiController oWiFiController;
 CMQTTController oMqttController;
+CWebSocket      oWebSocket("/ws");
+CWebServer      oWebServer(80);
 
-// DHT oDHTIndoor(D2,DHT11);
-// DHT oDHTIndoor(-1,DHT11);
 
 #ifdef DEBUGINFOS
 void runDebugTests() {
@@ -44,6 +49,7 @@ void setup() {
   // put your setup code here, to run once:
   oWiFiController.startWiFi(bUseConfigData);
   oMqttController.setup();
+  registerWebRoutes(oWebServer);  
   
   Appl.Log.logInfo(F("Hello world... - let's start the show!"));
   delay(200);

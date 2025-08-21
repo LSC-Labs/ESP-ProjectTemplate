@@ -6,6 +6,6 @@
 .vscode/ipch
 _obsolete
 node_modules
-bin
+bin/*
 test
 src/web/dev
