@@ -14,10 +14,8 @@ import gulp from 'gulp';
 import { CConfig } from './_common.js';
 
 const DEFAULTS = {
+    
     "locations": {
-        "tst": {
-            "data": 1
-        },
         "webSource": "src/web",
         "webDist"  : "dist/web",
         "webPacked": "tmp/tmp",
@@ -71,11 +69,6 @@ function findTargetFile(strFile, strSourceFile) {
     }
     return(strTargetFile);
 }
-
-
-
-
-
 
 function syncFile(strSourceFile, strTargetFile, strDirection) {
     let bSourceExists = fs.existsSync(strSourceFile);

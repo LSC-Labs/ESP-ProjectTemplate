@@ -11,8 +11,14 @@ console.log(getProjectName());
 console.log("=======================================");
 if(fs.existsSync("pages.json")) {
     console.log(' - loading config from "pages.json"');
-    let strData = fs.readFileSync("pages.json");
-    Settings = {...Settings, ...JSON.parse(strData) }
+    let strPagesFile = "pages.json";
+    if(!fs.existsSync(strPagesFile)) strPagesFile = "scripts/defaults/pages.json";
+    if(!fs.existsSync(strPagesFile)) strPagesFile = "lib/PLibESPV1/scripts/defaults/pages.json";
+    if(fs.existsSync(strPagesFile)) {
+        console.log(" --> using " + strPagesFile);
+        let strData = fs.readFileSync(strPagesFile);
+        Settings = {...Settings, ...JSON.parse(strData) }
+    }
 }
 
 

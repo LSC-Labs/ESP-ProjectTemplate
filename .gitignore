@@ -8,4 +8,5 @@ _obsolete
 node_modules
 bin/*
 test
-src/web/dev
+src/web
+dist
