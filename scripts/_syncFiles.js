@@ -24,7 +24,14 @@ const DEFAULTS = {
     },
 
     "sync" : {
+        "locations": [
+                            ".",
+                            "lib/PLibESPV1"
+                    ],
         "files": [
+                    "src/web/index.html          = src/web/index.html",
+                    "src/web/i18n/de.json        = src/web/i18n/de.json",
+                    "src/web/i18n/en.json        = src/web/i18n/en.json",
                     "src/web/css/runtime.css     > src/web/css/_runtime.css",
                     "src/web/css/runtime.css.map > src/web/css/_runtime.css.map",
                     "src/web/js/runtime.js       > src/web/js/_runtime.js",
@@ -46,10 +53,12 @@ const Status = {
 // #region Sync functions
 
 function findSourceFile(strFile) {
-    let strSourceFile = strFile;
-    // If it is NOT localy available, search inside the runtime library
-    if(!fs.existsSync(strSourceFile)) strSourceFile = path.join(Settings.getData("locations.rtLibrary"),strFile);
-    if(!fs.existsSync(strSourceFile)) strSourceFile = null;
+    let strSourceFile = null;
+    if(fs.existsSync(strFile)) strSourceFile = strFile;
+    Settings.getData("sync.locations",[]).forEach((strLocation) => {
+        let strSource = path.join(strLocation,strFile);
+        if(!strSourceFile && fs.existsSync(strSource)) strSourceFile = strSource;
+    });
     return(strSourceFile);
 }
 
@@ -71,53 +80,61 @@ function findTargetFile(strFile, strSourceFile) {
 }
 
 function syncFile(strSourceFile, strTargetFile, strDirection) {
-    let bSourceExists = fs.existsSync(strSourceFile);
-    let bTargetExists = fs.existsSync(strTargetFile);
-    let nSrcMS = bSourceExists ? fs.statSync(strSourceFile).mtimeMs : 0;
-    let nTgtMS = bTargetExists ? fs.statSync(strTargetFile).mtimeMs : 0;
-    
-    switch(strDirection) {
-        case "=":  if(!bTargetExists) {
-                        console.log(`   (=) copying "${strSourceFile}" \tto "${strTargetFile}"`);
-                        fs.copyFileSync(strSourceFile, strTargetFile);
-                        Status.numSyncFiles++;
-                    } else {
-                        console.log("   (=) target file already exists - no action...");
-                    }
-                    break;
+    console.log(`   => sync file: "${strSourceFile}" \t${strDirection} "${strTargetFile}"`);
+    if(strSourceFile != strTargetFile) {
+        let bSourceExists = fs.existsSync(strSourceFile);
+        let bTargetExists = fs.existsSync(strTargetFile);
+        let nSrcMS = bSourceExists ? fs.statSync(strSourceFile).mtimeMs : 0;
+        let nTgtMS = bTargetExists ? fs.statSync(strTargetFile).mtimeMs : 0;
 
-                    case ">":   if(nSrcMS > nTgtMS && bSourceExists) {
-                        console.log(`   (>) copying "${strSourceFile}" \tto "${strTargetFile}"`);
-                        fs.copyFileSync(strSourceFile, strTargetFile);
-                        Status.numSyncFiles++;
-                    } else {
-                        console.log(bSourceExists ? 
-                                    `   (>) target file is up to date...  - no action` :
-                                    "   (>) source file does not exist... - no action");
-                    }
-                    break;
+        switch(strDirection) {
+            case "=":  if(!bTargetExists) {
+                            console.log(`   (=) copying "${strSourceFile}" \tto "${strTargetFile}"`);
+                            fs.copyFileSync(strSourceFile, strTargetFile);
+                            Status.numSyncFiles++;
+                        } else {
+                            console.log("   (=) target file already exists - no action...");
+                        }
+                        break;
 
-        case "<":   if(nTgtMS > nSrcMS && bTargetExists) {
-                        console.log(`   (<) copying newer target to source "${strSourceFile}"`);
-                        fs.copyFileSync(strTargetFile, strSourceFile);
-                        Status.numSyncFiles++;
-                    } 
-                    break;
+                        case ">":   if(nSrcMS > nTgtMS && bSourceExists) {
+                            console.log(`   (>) copying "${strSourceFile}" \tto "${strTargetFile}"`);
+                            fs.copyFileSync(strSourceFile, strTargetFile);
+                            Status.numSyncFiles++;
+                        } else {
+                            console.log(bSourceExists ? 
+                                        `   (>) target file is up to date...  - no action` :
+                                        "   (>) source file does not exist... - no action");
+                        }
+                        break;
 
-        case "<>":  if(nSrcMS > nTgtMS) syncFile(strSourceFile, strTargetFile,">");
-                    if(nTgtMS > nSrcMS) syncFile(strSourceFile, strTargetFile,"<")
-                    break;
+            case "<":   if(nTgtMS > nSrcMS && bTargetExists) {
+                            console.log(`   (<) copying newer target to source "${strSourceFile}"`);
+                            fs.copyFileSync(strTargetFile, strSourceFile);
+                            Status.numSyncFiles++;
+                        } 
+                        break;
 
-        default:    console.error(" - ERROR : invalid sync command : " + strDirection);
-                    Status.numErrors++;
-                    break;
+            case "<>":  if(nSrcMS > nTgtMS) syncFile(strSourceFile, strTargetFile,">");
+                        if(nTgtMS > nSrcMS) syncFile(strSourceFile, strTargetFile,"<")
+                        break;
+
+            default:    console.error(" - ERROR : invalid sync command : " + strDirection);
+                        Status.numErrors++;
+                        break;
+        }
+    } else {
+        console.log("   (x) source and target are identical - no action...");
     }
+    console.log("");
+
 }
 
 async function syncFileList(cb) {
     Settings.getData("sync.files",[]).forEach((strInstruction) => {
-        console.log(` - "${strInstruction}"`) ;
-        let oRegEx = new RegExp("^(?<source>[\\/\\._a-zA-Z]*)\\s*(?<cmd>[<=>]?)\\s*(?<target>.*)$");
+        console.log(` - parsing: "${strInstruction}"`) ;
+        // let oRegEx = new RegExp("^(?<source>[\\/\\._a-zA-Z0-9]*)\\s*(?<cmd>[<=>]{1,2})\\s*(?<target>.*)$");
+        let oRegEx = /^(?<source>[\/\._a-zA-Z0-9]*)\s*(?<cmd>[<=>]{1,2})\s*(?<target>.*)$/gm
         let oMatch = oRegEx.exec(strInstruction);
         if(oMatch) {
             if(oMatch.groups.cmd && oMatch.groups.target) {
@@ -130,7 +147,7 @@ async function syncFileList(cb) {
                                 oMatch.groups.cmd.trim());
                 }
             } else {
-                console.error(" - invalid instruction : " + strInstruction);
+                console.error(" - invalid instruction : [" + strInstruction + "]");
                 Status.numErrors++;
             }
         } else {
@@ -148,12 +165,15 @@ async function syncFileList(cb) {
 // #endregion
 
 
-
-
-
-
 export async function runSyncFiles(cb, oSettings) {
     console.log("---- syncFiles....");
+    if(oSettings && typeof oSettings === "object") {
+        if(oSettings.sync) {    
+            // to ensure, that only new settings are applied
+            if(oSettings.sync.locations) { Settings.setData("sync.locations", oSettings.sync.locations) }
+            if(oSettings.sync.files)     { Settings.setData("sync.files",oSettings.sync.files); }
+        }
+    }
     Settings.addConfig(oSettings);
     const runJob = gulp.series( syncFileList );
     return await runJob();

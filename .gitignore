@@ -5,8 +5,10 @@
 .vscode/launch.json
 .vscode/ipch
 _obsolete
+data/config.json
 node_modules
 bin/*
-test
-src/web
-dist
+tmp/*
+src/web/test*
+dist/tmp
+include/web/test*
