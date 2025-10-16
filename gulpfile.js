@@ -10,14 +10,15 @@ var Settings;
 console.log(getProjectName());
 console.log("=======================================");
 if(fs.existsSync("pages.json")) {
-    console.log(' - loading config from "pages.json"');
     let strPagesFile = "pages.json";
     if(!fs.existsSync(strPagesFile)) strPagesFile = "scripts/defaults/pages.json";
     if(!fs.existsSync(strPagesFile)) strPagesFile = "lib/PLibESPV1/scripts/defaults/pages.json";
     if(fs.existsSync(strPagesFile)) {
-        console.log(" --> using " + strPagesFile);
+        console.log(` --> using properties from "${strPagesFile}"`);
         let strData = fs.readFileSync(strPagesFile);
         Settings = {...Settings, ...JSON.parse(strData) }
+    } else {
+        console.log(" --> Property file not found... using Default...")
     }
 }
 
