@@ -1,4 +1,6 @@
-
+/**
+ * Application settings - controls behavior of the web application
+ */
 const APP_SETTINGS = {
     "@Default": "P.Liebl",
     "DefaultPage" : "Support",              // Page to be loaded on initialization
@@ -11,22 +13,25 @@ const APP_SETTINGS = {
      * Use them in this files as $(<name>)
      */
     "app": {
-        "prog_name": "ESP Project Template",
+        "prog_name": "ESP Project Template",    // Name of the program
         "prog_ver": "0.1",
         "prog_copy": "(c) 2025 LSC-Labs",
-        "logLevel": 5,
-        "mqtt": {
-            "recon": false,
+        "logLevel": 5,                          // Log Level for the web application (0..7)
+        "ws": {
+            "recon": true,  // Enable WebSocket reconnection- disable for testing to avoid messages in the html console
         },
         "latest": {
             "url": "https://api.github.com/repos/LSC-Labs/ESP-ProjectTemplate/releases/latest"
         },
-        "homePage": "https://github.com/LSC-Labs/ESP-ProjetTemplate",
-        "deployPage": "//lsc-labs.de/Software/ESP-ProjectTemplate/Publish",
+        "GitHubPage": "https://github.com/LSC-Labs/DewPoint-Switch",
         "mailto":"office@lsc-labs.de?subject=$(prog_name) - v$(prog_ver)"
         
     },
 
+    /**
+     * Icons used in the web GUI
+     * see runtime how to use them
+     */
     "icons" : {
         
         "svg": {
@@ -56,6 +61,19 @@ const APP_SETTINGS = {
                 "data": [ 
                     "M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0",
                     "M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"
+                ]
+            },
+            {
+                "name": "MenuIcon",
+                "type": "svg",
+                "class": "bi bi-cloud-drizzle",
+                "attr": {
+                    "viewBox": "-5 0 16 16",
+                    "height": "20px",
+                    "width": "32px"
+                },
+                "data": [
+                    "M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317m6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317m-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317m6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317m.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973M8.5 2a4 4 0 0 1 3.976 3.555.5.5 0 0 0 .5.445H13a2 2 0 0 1 0 4H3.5a2.5 2.5 0 1 1 .605-4.926.5.5 0 0 0 .596-.329A4 4 0 0 1 8.5 2"
                 ]
             },
             {
@@ -144,7 +162,17 @@ const APP_SETTINGS = {
                     "M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z",
                     "M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"
                 ]
+            },
+            {
+                "name" : "Envelope",
+                "type" : "svg",
+                "class": "bi bi-envelope-arrow-up",
+                "data" : [
+                    "M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4.5a.5.5 0 0 1-1 0V5.383l-7 4.2-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h5.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-1.99zm1 7.105 4.708-2.897L1 5.383zM1 4v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1",
+                    "M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.354-5.354 1.25 1.25a.5.5 0 0 1-.708.708L13 12.207V14a.5.5 0 0 1-1 0v-1.717l-.28.305a.5.5 0 0 1-.737-.676l1.149-1.25a.5.5 0 0 1 .722-.016"
+                ]
             }
+
 
         ]
     },
