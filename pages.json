@@ -24,7 +24,8 @@
         "lib/PLibESPV1/src/web/pages/MQTT",
         "lib/PLibESPV1/src/web/pages/Device",
         "lib/PLibESPV1/src/web/pages/Backup",
-        "lib/PLibESPV1/src/web/pages/Firmware"
+        "lib/PLibESPV1/src/web/pages/Firmware",
+        "src/web/pages/Status"
     ],
 
     "sync" : {

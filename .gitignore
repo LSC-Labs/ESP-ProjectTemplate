@@ -7,7 +7,7 @@
 _obsolete
 data/config.json
 node_modules
-bin/*
+bin/*.bin
 tmp/*
 src/web/test*
 dist/tmp
