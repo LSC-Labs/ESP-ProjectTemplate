@@ -14,11 +14,13 @@ What you have to do to get a smart device with a Web GUI:
 
 
 ## Quick start...
-To ease the startup, after cloning this template, you can use the script "initialize".
+To ease the startup, after cloning this template, you can use the commands in "initialize".
 This script will register the submodules(with the PLibEspV1 application framework) that are used.
 Second it checks out all necessary modules, like gulp for the current development process.
 
-Next edit the src/web/settings.js file.
+Edit the package.json file and change the name, the version number and the description of your project.
+
+Edit the src/web/js/settings.js file.
 - Insert your program name, version number and the web pages you want to use in your device. This file is for the usage in the Web GUI.
 - Also edit the data/prog_version.json file and insert the progname and the version inside - this file is used for the info in the cpp part - in the device.
 

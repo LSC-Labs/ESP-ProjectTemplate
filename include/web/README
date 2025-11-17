@@ -1,0 +1,5 @@
+This folder contains includes, used to support the WEB GUI.
+
+It will be filled, when the pages will be compiled
+
+@see npm script "compile-Pages"
