@@ -1,107 +1,178 @@
 <!-- 
-    Status - Page 
+    Status - Page for Dew Point Switch
 -->
 <div id="StatusPage">
-    <legend data-i18n="Status.legend">Status of $(prog_name) Ver.: $(prog_ver)</legend>
+    <!-- Status of $(prog_name) Ver.: $(prog_ver) -->
+    <legend data-i18n="Status.legend"></legend>
 
+    
     <div class="row text-center">
         <div class="col-md-8 col-md-offset-2">
 
+            <!-- Device Status Table -->
             <div class="panel panel-default table-responsive">
                 <table class="table table-hover table-striped table-condensed">
-                    <caption>Device</caption>
+                    
+                    <caption data-i18n="Status.panel.device"></caption>
                     <tr>
-                        <th>Systemname</th>
-                        <td data-cfg="hostname"></td>
+                        <!-- system/host name -->
+                        <th data-i18n="Status.hostname"></th>
+                        <td data-cfg="wifi_hostname"></td>
                     </tr>
                     <tr>
-                        <th>Uptime</th>
+                        <!-- uptime -->
+                        <th data-i18n="Status.uptime"></th>
                         <td data-cfg="uptime"></td>
                     </tr>
-                    <tr>
-                        <th>Flash usage</th>
-                        <td>
-                            <div class='progress' style="margin-bottom: 0 !important;">
-                                <div data-id="flash" class="progress-bar progress-bar-primary" role="progressbar">
-                                </div>
-                                <div data-id="flash_rest" class="progress-bar" style="background-color: bisque;" role="progressbar">
-                                </div>
-                            </div>
+                     <tr>
+                        <!-- Flash size -->
+                        <th data-i18n="Status.flashSize"></th>
+                        <td >
+                            <span data-cfg="flash_size"></span> Bytes
+                        </td>
+                    </tr>
+                     <tr>
+                        <!-- sketch size -->
+                        <th data-i18n="Status.sketchSize"></th>
+                        <td >
+                            <span data-cfg="sketch_size"></span> Bytes
                         </td>
                     </tr>
                     <tr>
-                        <th>Battery</th>
-                        <td ><span data-cfg="power"></span> V</td>
+                        <!-- Flash usage -->
+                        <th data-i18n="Status.flashUsage"></th>
+                        <td>
+                            <div class="progressBar">
+                                <div id="flashUsage" class="usageStatus usageOK" title="Warning - too less memory"></div>
+                            </div>
+                        </td>
                     </tr>
+                    <!-- Battery not available -->
+                    <!--
+                    <tr>
+                        
+                        <th data-i18n="Status.battery" ></th>
+                        <td ><span data-cfg="bat_power"></span> V</td>
+                    </tr>
+                    -->
 
                 </table>
             </div>
-<!--
-            ***** Insert your status panel, if needed ******
-            
-            <div class="panel panel-default table-responsive">
-                <table data-cfg="client-table" class="table table-hover table-striped table-condensed">
-                    <caption>Client list</caption>
-                </table>
-            </div>
-        -->
 
+            <!-- Sample from Dew Point Switch - insert your status here -->
+            <!-- Dew Point Switch Status Table -->
             <div class="panel panel-default table-responsive">
                 <table class="table table-hover table-striped table-condensed">
-                    <caption>Network</caption>
+                    <!-- Dew Point -->
+                    <caption data-i18n="Status.panel.dewpoint"></caption>
                     <tr>
-                        <th>SSID</th>
-                        <td data-cfg="ssid"></td>
+                        <!-- fan active -->
+                        <th data-i18n="Status.fan.active"></th>
+                        <td>
+                            <input id="fan_active" type="text" data-cfg="fan_active" style="display:none"></input>
+                            <span data-viewon="fan_active=true">
+                                <icon data-icon="ToggleOnSwitch"></icon> 
+                            </span>
+                            <span data-viewon="fan_active=false">
+                                <icon data-icon="ToggleOffSwitch"></icon> 
+                            </span>
+                        </td>
                     </tr>
                     <tr>
-                        <th data-i18n="wlan.sigstrength" >Signal strength</th>
-                        <td><span data-cfg="rssi"></span> dB</td>
+                        <!-- sensor Indoor -->
+                        <th data-i18n="Status.sensor.ID"></th>
+                        <td>
+                            <span data-cfg="sensorID_temp_c"></span>°C / 
+                            <span data-cfg="sensorID_hum"></span>%
+                            => (<span data-i18n="Status.sensor.dewpoint"></span>:
+                            <span data-cfg="sensorID_dew_point"></span>°C)
+                        </td>
                     </tr>
                     <tr>
-                        <th>IP</th>
-                        <td data-cfg="ip"></td>
+                        <!-- sensor Outdoor -->
+                        <th data-i18n="Status.sensor.OD"></th>
+                        <td>
+                            <span data-cfg="sensorOD_temp_c"></span>°C / 
+                            <span data-cfg="sensorOD_hum"></span>%
+                            => (<span data-i18n="Status.sensor.dewpoint"></span>:
+                            <span data-cfg="sensorOD_dew_point"></span>°C)
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Network and WiFi Status Table-->
+            <div class="panel panel-default table-responsive">
+                <table class="table table-hover table-striped table-condensed">
+                    <!-- Network -->
+                    <caption data-i18n="Status.panel.network"></caption>
+                    <tr>
+                        <!-- SSID of the current network -->
+                        <th data-i18n="Status.ssid"></th>
+                        <td data-cfg="wifi_ssid"></td>
                     </tr>
                     <tr>
-                        <th>Gateway</th>
-                        <td data-cfg="gateway"></td>
+                        <!-- Signal strength in rssi -->
+                        <th data-i18n="Status.rssi" ></th>
+                        <td><span data-cfg="wifi_rssi"></span> dB</td>
                     </tr>
                     <tr>
-                        <th>Mask</th>
-                        <td data-cfg="netmask"></td>
+                        <!-- IP address of the device -->
+                        <th data-i18n="Status.ip"></th>
+                        <td data-cfg="wifi_ip"></td>
                     </tr>
                     <tr>
-                        <th>DNS</th>
-                        <td data-cfg="dns"></td>
+                        <!-- Gateway address -->
+                        <th data-i18n="Status.gateway"></th>
+                        <td data-cfg="wifi_gateway"></td>
                     </tr>
                     <tr>
-                        <th>MAC</th>
-                        <td data-cfg="mac"></td>
+                        <!-- Network mask -->
+                        <th data-i18n="Status.netmask"></th>
+                        <td data-cfg="wifi_netmask"></td>
+                    </tr>
+                    <tr>
+                        <!-- DNS server address -->
+                        <th data-i18n="Status.dns"></th>
+                        <td data-cfg="wifi_dns"></td>
+                    </tr>
+                    <tr>
+                        <!-- MAC address -->
+                        <th data-i18n="Status.mac"></th>
+                        <td data-cfg="wifi_mac"></td>
                     </tr>
                 </table> 
             </div>
             
+            <!-- Message Broker Status Table -->
             <div class="panel panel-default table-responsive">
                 <table class="table table-hover table-striped table-condensed">
-                    <caption>MQTT</caption>
+                    <!-- MQTT -->
+                    <caption data-i18n="Status.panel.mqtt"></caption>
                     <tr>
-                        <th>Enabled</th>
-                        <td data-cfg="isEnabled"></td>
+                        <!-- Enabled -->
+                        <th data-i18n="Status.enabled"></th>
+                        <td data-cfg="mqtt_isEnabled"></td>
                     </tr>
                     <tr>
-                        <th>Connected</th>
-                        <td data-cfg="isConnected"></td>
+                        <!-- Connected -->
+                        <th data-i18n="Status.connected"></th>
+                        <td data-cfg="mqtt_isConnected"></td>
                     </tr>
                     <tr>
-                        <th>Last Connection start</th>
-                        <td data-cfg="started"></td>
+                        <!-- Last connection start -->
+                        <th data-i18n="Status.lastConStart"></th>
+                        <td data-cfg="mqtt_started"></td>
                     </tr>
                     <tr>
-                        <th>Last Connection lost</th>
-                        <td data-cfg="disconTS"></td>
+                        <!-- Last connection lost -->
+                        <th data-i18n="Status.lastConLost"></th>
+                        <td data-cfg="mqtt_disconTS"></td>
                     </tr>
                     <tr>
-                        <th>Disconnect reason</th>
-                        <td data-cfg="disconReason"></td>
+                        <!-- Disconnection reason -->
+                        <th data-i18n="Status.disconReason"></th>
+                        <td data-cfg="mqtt_disconReason"></td>
                     </tr>
                 </table>
             </div>
