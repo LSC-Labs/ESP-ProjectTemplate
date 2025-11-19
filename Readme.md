@@ -31,3 +31,7 @@ Also the pages / modules you want to use in your application are inside this fil
 
 After setting up this files, use the "sync-Files" and the "build-Pages" npm functions. If you are using Visual Code as editor, you can start these scripts in the section "NPM SCRIPTS". These script can be started again, if you changed some modules and you need an update.
 
+As you will replace this file with your project description, the detailed information about the usage of the template you can find in https://github.com/LSC-Labs/ESP-ProjectTemplate/wiki
+
+
+
