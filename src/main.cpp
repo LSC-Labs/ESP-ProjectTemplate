@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <AppConfig.h>
+#include <AppControl.h>
 #include <FileSystem.h>
 #include <Appl.h>
 #include <WiFiController.h>
@@ -17,6 +18,8 @@ CWiFiController oWiFiController;
 CMQTTController oMqttController;
 CWebSocket      oWebSocket("/ws");
 CWebServer      oWebServer(80);
+
+CAppControl oAppControl;
 
 
 #ifdef DEBUGINFOS
@@ -38,6 +41,9 @@ void setup() {
 
   Appl.addStatusHandler("wifi",&oWiFiController);
   Appl.addStatusHandler("mqtt",&oMqttController);
+
+  // Connect the message bus to the application control implementation
+  Appl.MsgBus.addEventHandler(&oAppControl);
 
   Appl.init("ESP Template","0.1.0");
   Appl.sayHello();
