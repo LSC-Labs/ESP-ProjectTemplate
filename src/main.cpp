@@ -1,3 +1,19 @@
+/**
+ * @file       main.cpp
+ * @author     LSC Labs - P. Liebl
+ * @version    1.0.2
+ * @date       2025-12-05
+ * @brief      Main application file
+ * 
+ * -> this file is a template from LSC Labs for IoT applications based on ESP8266/ESP32 (ESP-ProjectTemplate)
+ * -> Modify for your own application as needed.
+ * 
+ * Template contains:
+ * - WiFi management (Station + Access Point mode)
+ * - MQTT client with Home Assistant auto discovery support
+ * - Web Server with WebSocket support
+ * 
+ */
 #include <Arduino.h>
 #include <AppConfig.h>
 #include <AppControl.h>
@@ -7,10 +23,8 @@
 #include <MQTTController.h>
 #include <WebSocket.h>
 #include <WebServer.h>
-#include <WebRoutes.h>
+// #include <WebRoutes.h>   - if you have custom web routes, include your WebRoutes.h here
 #include <DevelopmentHelper.h>
-#include <DewSensor.h>
-#include <DewPointApp.h>
 
 
 CFS oFS;
@@ -19,7 +33,8 @@ CMQTTController oMqttController;
 CWebSocket      oWebSocket("/ws");
 CWebServer      oWebServer(80);
 
-CAppControl oAppControl;
+// Insert an application control instance to handle the application coordination and logic
+// CAppControl oAppControl;
 
 
 #ifdef DEBUGINFOS
@@ -43,20 +58,26 @@ void setup() {
   Appl.addStatusHandler("mqtt",&oMqttController);
 
   // Connect the message bus to the application control implementation
-  Appl.MsgBus.addEventHandler(&oAppControl);
+  // Appl.MsgBus.addEventHandler(&oAppControl);
 
-  Appl.init("ESP Template","0.1.0");
+  Appl.init(APP_NAME,APP_VERSION);
   Appl.sayHello();
   
   bool bUseConfigData = Appl.readConfigFrom(CONFIG_FILE);
   Appl.printDiag();
   Appl.Log.logInfo(F("Initializing services..."));
  
-  // put your setup code here, to run once:
+  // Initialize and start the WiFi
   oWiFiController.startWiFi(bUseConfigData);
   oMqttController.setup();
-  registerWebRoutes(oWebServer);  
   
+  // Prepare and start the Web Server
+  // enable registerWebRoutes if you have custom web routes (WebRoutes.cpp/h)
+  oWebServer.addHandler(&oWebSocket);
+  // registerWebRoutes(oWebServer);  
+  oWebServer.begin();
+  
+
   Appl.Log.logInfo(F("Hello world... - let's start the show!"));
   delay(200);
 
