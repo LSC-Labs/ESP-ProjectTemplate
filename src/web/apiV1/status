@@ -1,7 +1,7 @@
 {
     "DebugMode": true,
-    "prog_name": "DewPoint Switch",
-    "prog_version": "0.1.0.E-D",
+    "prog_name": "LSC Device",
+    "prog_version": "0.1.0.1-D",
     "uptime": "00:00:02",
     "starttime": 78,
     "now": 2325,

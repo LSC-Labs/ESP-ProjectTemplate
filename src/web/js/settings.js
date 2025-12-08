@@ -24,16 +24,17 @@ const APP_SETTINGS = {
             "url": "https://api.github.com/repos/LSC-Labs/ESP-ProjectTemplate/releases/latest"
         },
         "GitHubPage": "https://github.com/LSC-Labs/DewPoint-Switch",
-        "mailto":"office@lsc-labs.de?subject=$(prog_name) - v$(prog_ver)"
+        "mailto":"youroffice@yourdomain.de?subject=$(prog_name) - v$(prog_ver)"
         
     },
 
     /**
      * Icons used in the web GUI
      * see runtime how to use them
+     * Find new icons at: https://icons.getbootstrap.com/
      */
     "icons" : {
-        
+        // Dafault SVG settings
         "svg": {
             "height": "18px",
             "width": "18px",
@@ -42,6 +43,7 @@ const APP_SETTINGS = {
         "svgSub": {
             "height": "14px",
         },
+        // Icon definitions
         "d": [
             {
                 "name": "Info",
