@@ -23,7 +23,7 @@ const APP_SETTINGS = {
         "latest": {
             "url": "https://api.github.com/repos/LSC-Labs/ESP-ProjectTemplate/releases/latest"
         },
-        "GitHubPage": "https://github.com/LSC-Labs/DewPoint-Switch",
+        "GitHubPage": "https://github.com/LSC-Labs/ESP-ProjectTemplate",
         "mailto":"youroffice@yourdomain.de?subject=$(prog_name) - v$(prog_ver)"
         
     },
