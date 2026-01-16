@@ -1,7 +1,7 @@
 git submodule init
 git submodule update --recursive
 
-; if you want to connect the runtime to the current master use:
+# if you want to connect the runtime to the current master use:
 cd lib/PLibESPV1
 git checkout main
 git stash
@@ -10,9 +10,9 @@ git pull
 npm install
 npm update
 
-; ********************************************************************
-; ** Before running the first time, run the npm script "syncFiles"
-; ** This will place the runtime defaults on the correct locations.
-; ** i.E. the WebRoutes.cpp, where you have to place your routes
-; *********************************************************************
+# ********************************************************************
+# ** Before running the first time, run the npm script "syncFiles"
+# ** This will place the runtime defaults on the correct locations.
+# ** i.E. the WebRoutes.cpp, where you have to place your routes
+# *********************************************************************
 
