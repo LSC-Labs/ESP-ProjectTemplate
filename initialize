@@ -6,7 +6,9 @@ cd lib/PLibESPV1
 git checkout main
 git stash
 git pull
+cd ../../
 
+# Now check out needed npm modules...
 npm install
 npm update
 
