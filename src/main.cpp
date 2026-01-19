@@ -87,5 +87,6 @@ void setup() {
 }
 
 void loop() {
+  oWebSocket.dispatchMessageQueue();
   // put your main code here, to run repeatedly:
 }
