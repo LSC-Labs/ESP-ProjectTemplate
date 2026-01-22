@@ -34,10 +34,14 @@ CWebSocket      oWebSocket("/ws");
 CWebServer      oWebServer(80);
 
 // Insert an application control instance to handle the application coordination and logic
-// CAppControl oAppControl;
+CAppControl     oAppControl;
 
 
 #ifdef DEBUGINFOS
+/**
+ * @brief runDebugTests
+ * Function to run some debug tests on startup
+ */
 void runDebugTests() {
   JsonDocument oCfg;
   JsonObject oCfgNode = oCfg.to<JsonObject>();
@@ -47,19 +51,37 @@ void runDebugTests() {
 }
 #endif
 
-void setup() {
-  Serial.begin(115200);
-  DEBUG_INFOS("\nInitializing application: \"%s\" Version: %s\n",APP_NAME,APP_VERSION);
-  
+/**
+ * @brief registerModules
+ * Register all modules to the application - config handlers, status handlers, message receivers
+ */
+void registerModules() {
+
+  // Register the configuration and status handlers
   Appl.addConfigHandler("wifi",&oWiFiController);
   Appl.addConfigHandler("mqtt",&oMqttController);
 
   Appl.addStatusHandler("wifi",&oWiFiController);
   Appl.addStatusHandler("mqtt",&oMqttController);
 
-  // Connect the message bus to the application control implementation
-  // Appl.MsgBus.addEventHandler(&oAppControl);
+  // Register the message receivers...
+  // - React on Appl.dispatch() calls (MSG_APPL_LOOP message)
+  // - offer module commands on the message bus for other modules
+  Appl.MsgBus.registerEventReceiver(&oAppControl);
+  Appl.MsgBus.registerEventReceiver(&oWiFiController);
+  Appl.MsgBus.registerEventReceiver(&oMqttController);
+  Appl.MsgBus.registerEventReceiver(&oWebSocket);     
 
+}
+
+void setup() {
+  Serial.begin(115200);
+  DEBUG_FUNC_START();
+  DEBUG_INFOS("\nInitializing application: \"%s\" Version: %s\n",APP_NAME,APP_VERSION);
+
+  registerModules();
+
+    // Initialize the application - this will send a MSG_APPL_INITIALIZED message
   Appl.init(APP_NAME,APP_VERSION);
   Appl.sayHello();
   
@@ -84,9 +106,10 @@ void setup() {
   #ifdef DEBUGINFOS
     runDebugTests();
   #endif
+  DEBUG_FUNC_END();
 }
 
 void loop() {
-  oWebSocket.dispatchMessageQueue();
+  Appl.dispatch(); // will send a MSG_APPL_LOOP message to all registered receivers
   // put your main code here, to run repeatedly:
 }
