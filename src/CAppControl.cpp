@@ -15,7 +15,7 @@ CAppControl::CAppControl()
     // Constructor implementation (if needed)
 }   
 
-int CAppControl::onEvent(const void* pSender, int nMsgID, const void * pMsg, int nMsgClass)
+int CAppControl::receiveEvent(const void* pSender, int nMsgID, const void * pMsg, int nMsgClass)
 {
     int nResult = EVENT_MSG_RESULT_OK;
     // Handle incoming events here
@@ -29,7 +29,16 @@ int CAppControl::onEvent(const void* pSender, int nMsgID, const void * pMsg, int
         case MSG_RESTART_REQUEST:
             // Process some save actions if needed and prepare shutdown
             break;
+        case MSG_APPL_LOOP:
+            // Periodic loop message
+            break;
 
     }
     return nResult; // Return appropriate status
+}
+
+void CAppControl::dispatch()
+{
+    // Implement periodic tasks or message dispatching here
+    // This function can be called regularly in the main loop
 }

@@ -17,6 +17,6 @@ public:
     CAppControl();
 
     // Inherited via EventHandler
-    virtual int onEvent(const void* pSender, int nMsgID, const void * pMsg, int nMsgClass);
-    
+    virtual int receiveEvent(const void* pSender, int nMsgID, const void * pMsg, int nMsgClass);
+    void dispatch();
 };
