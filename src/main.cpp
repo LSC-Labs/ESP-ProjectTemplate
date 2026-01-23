@@ -57,19 +57,15 @@ void runDebugTests() {
  */
 void registerModules() {
 
+  Appl.registerModule("wifi",&oWiFiController);
+  Appl.registerModule("mqtt",&oMqttController);
+  Appl.registerModule("web", &oWebServer);
   // Register the configuration and status handlers
-  Appl.addConfigHandler("wifi",&oWiFiController);
-  Appl.addConfigHandler("mqtt",&oMqttController);
-
-  Appl.addStatusHandler("wifi",&oWiFiController);
-  Appl.addStatusHandler("mqtt",&oMqttController);
-
+  
   // Register the message receivers...
   // - React on Appl.dispatch() calls (MSG_APPL_LOOP message)
   // - offer module commands on the message bus for other modules
   Appl.MsgBus.registerEventReceiver(&oAppControl);
-  Appl.MsgBus.registerEventReceiver(&oWiFiController);
-  Appl.MsgBus.registerEventReceiver(&oMqttController);
   Appl.MsgBus.registerEventReceiver(&oWebSocket);     
 
 }
