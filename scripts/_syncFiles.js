@@ -133,8 +133,7 @@ function syncFile(strSourceFile, strTargetFile, strDirection) {
 async function syncFileList(cb) {
     Settings.getData("sync.files",[]).forEach((strInstruction) => {
         console.log(` - parsing: "${strInstruction}"`) ;
-        // let oRegEx = new RegExp("^(?<source>[\\/\\._a-zA-Z0-9]*)\\s*(?<cmd>[<=>]{1,2})\\s*(?<target>.*)$");
-        let oRegEx = /^(?<source>[\/\._a-zA-Z0-9]*)\s*(?<cmd>[<=>]{1,2})\s*(?<target>.*)$/gm
+        let oRegEx = new RegExp("^(?<source>[\\/\\._a-zA-Z]*)\\s*(?<cmd>[<=>]{1,2})\\s*(?<target>.*)$");
         let oMatch = oRegEx.exec(strInstruction);
         if(oMatch) {
             if(oMatch.groups.cmd && oMatch.groups.target) {
@@ -147,7 +146,7 @@ async function syncFileList(cb) {
                                 oMatch.groups.cmd.trim());
                 }
             } else {
-                console.error(" - invalid instruction : [" + strInstruction + "]");
+                console.error(" - invalid instruction : " + strInstruction);
                 Status.numErrors++;
             }
         } else {
