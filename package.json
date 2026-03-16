@@ -18,12 +18,13 @@
   },
   "scripts": {
     "create-WebPages": "npm run build-Pages && npm run compile-Pages",
+    "build-Pages": "gulp buildPages",
+    "compile-Pages": "gulp compilePages",
     "css-compile": "sass       --style expanded --source-map --embed-sources --no-error-css scss/:src/web/css/",
-    "sync-Files": "gulp syncFiles",
     "watch-WebPages": "watchlist src/web/pages lib/PLibESPV1/src/web/pages -- npm run update-Pages",
     "watch-css": "sass --watch --style expanded --source-map --embed-sources --no-error-css scss/:src/web/css/",
-    "build-Pages": "gulp buildPages",
-    "compile-Pages": "gulp compilePages"
+    "update-Versions": "node scripts/updateVersionInfos",
+    "sync-RuntimeFiles": "node scripts/syncFiles"
     },
   "author": "LSC Labs - P.Liebl",
   "license": "MIT",

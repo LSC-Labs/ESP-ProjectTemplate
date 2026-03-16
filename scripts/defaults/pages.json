@@ -2,6 +2,7 @@
     "locations": {
         "webSource": "src/web",
         "webDist"  : "dist/web",
+        "webTemp"  : "tmp/web",
         "webPacked": "tmp/web",
         "includes" : "include/web"
     },
@@ -10,33 +11,37 @@
         "path": "src/web/dev",
         "pageFile": "_pages.html",
         "pageScript": "js/_pages.js"
+        
     },
     
+    "touchAfterPagesCompiled": "src/WebRoutes.cpp",   
+
     "usePages": [
+        "@lib/PLibESPV1/src/web/i18n",
         "lib/PLibESPV1/src/web/pages/_Defaults",
         "lib/PLibESPV1/src/web/pages/System",
         "lib/PLibESPV1/src/web/pages/WiFi",
         "lib/PLibESPV1/src/web/pages/MQTT",
         "lib/PLibESPV1/src/web/pages/Device",
         "lib/PLibESPV1/src/web/pages/Backup",
-        "lib/PLibESPV1/src/web/pages/Firmware"
+        "lib/PLibESPV1/src/web/pages/Firmware",
+        "src/web/pages/Status"
     ],
 
     "sync" : {
         "files": [
-                    "scripts/buildSteps.py          > scripts/buildSteps.py",
-                    "scripts/_common.js             > scripts/_common.js",
-                    "scripts/_compilePages.js       > scripts/_compilePages.js" ,
-                    "scripts/_buildPages.js         > scripts/_buildPages.js",
-                    "scripts/_syncFiles.js          > scripts/_syncFiles.js",   
-                    
-                    "src/web/css/runtime.css        > src/web/css/_runtime.css",
-                    "src/web/css/runtime.css.map    > src/web/css/_runtime.css.map",
-                    "src/web/js/runtime.js          > src/web/js/_runtime.js",
-                    
-                    "src/web/js/settings.js         = src/web/js/settings.js",
-                    "src/WebRoutes.cpp.template     = src/WebRoutes.cpp",
-                    "include/WebRoutes.h.template   = include/WebRoutes.h"
+                    "lib/PLibESPV1/scripts/buildSteps.py        > scripts/buildSteps.py",
+                    "lib/PLibESPV1/scripts/_buildPages.js       > scripts/_buildPages.js",
+                    "lib/PLibESPV1/scripts/_common.js           > scripts/_common.js",
+                    "lib/PLibESPV1/scripts/_compilePages.js     > scripts/_compilePages.js",
+                    "lib/PLibESPV1/scripts/_syncFiles.js        > scripts/_syncFiles.js",
+                    "src/web/css/runtime.css                    > src/web/css/_runtime.css",
+                    "src/web/css/runtime.css.map                > src/web/css/_runtime.css.map",
+                    "src/web/js/runtime.js                      > src/web/js/_runtime.js",
+                    "src/web/index.html                         = src/web/index.html",
+                    "src/web/js/settings.js                     = src/web/js/settings.js",
+                    "src/WebRoutes.cpp.template                 = src/WebRoutes.cpp",
+                    "include/WebRoutes.h.template               = include/WebRoutes.h"
                 ]
     }
 }
