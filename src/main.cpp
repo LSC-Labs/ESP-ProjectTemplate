@@ -71,7 +71,7 @@ void registerModules() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  // Serial.begin(115200); // Moved to CAppl constructor
   DEBUG_FUNC_START();
   DEBUG_INFOS("\nInitializing application: \"%s\" Version: %s\n",APP_NAME,APP_VERSION);
 
