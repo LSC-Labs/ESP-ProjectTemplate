@@ -39,9 +39,9 @@ gulp.task('compilePages', async(cb) => {
     console.log("Compiling pages...");
     runCompilePages(cb,Settings);
 });
+
 /*
- * becomes a native npm job !
-import {runSyncFiles} from './scripts/_syncFiles.js';
+import {runSyncFiles} from './scripts/syncFiles.js';
 gulp.task('syncFiles', async (cb) => {
     console.log("Syncing files...");
     runSyncFiles(cb,Settings);
