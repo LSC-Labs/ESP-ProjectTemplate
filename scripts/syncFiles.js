@@ -5,14 +5,14 @@
  * 
  * @file scripts/syncFiles.js
  * @author LSC Labs - Peter Liebl
- * @version 1.1.0
+ * @version 1.4.2
  * 
  * @param 1 == pages.json (or pages.json in cwd will be used)
  */
 
 
 const MODULE_NAME = "syncFiles";
-const MODULE_VERSION = "1.4.0";
+const MODULE_VERSION = "1.4.2";
 
 
 import fs from 'fs';
@@ -60,6 +60,7 @@ const Status = {
 
 function loadPagesFile(strPages) {
     if(!strPages) strPages = "pages.json";
+    console.log("----> loading " + strPages);
     if( fs.existsSync(strPages)) {
         console.log("---> using pages definition: " + strPages)
         let strData = fs.readFileSync(strPages);
