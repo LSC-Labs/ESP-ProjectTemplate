@@ -43,10 +43,9 @@ CAppControl     oAppControl;
  * Function to run some debug tests on startup
  */
 void runDebugTests() {
-  JsonDocument oCfg;
-  JsonObject oCfgNode = oCfg.to<JsonObject>();
-  Appl.writeConfigTo(oCfgNode,false);
+  JsonNode oCfgNode;
   DEBUG_INFO("Current configuration:");
+  Appl.writeConfigTo(oCfgNode,false);
   DEBUG_JSON_OBJ(oCfgNode);
 }
 #endif
