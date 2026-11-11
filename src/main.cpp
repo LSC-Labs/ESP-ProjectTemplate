@@ -1,18 +1,25 @@
 /**
  * @file       main.cpp
  * @author     LSC Labs - P. Liebl
- * @version    1.0.2
- * @date       2025-12-05
+ * @version    1.1.0
+ * @date       2026-11-11
  * @brief      Main application file
- * 
+ *
  * -> this file is a template from LSC Labs for IoT applications based on ESP8266/ESP32 (ESP-ProjectTemplate)
  * -> Modify for your own application as needed.
- * 
+ *
  * Template contains:
  * - WiFi management (Station + Access Point mode)
  * - MQTT client with Home Assistant auto discovery support
  * - Web Server with WebSocket support
- * 
+ *
+ * Web GUI (embedded pages and routes):
+ * The device can be built without the web GUI. To enable it:
+ * 1. "npm run sync-RuntimeFiles" - copies WebRoutes.cpp / WebRoutes.h and index.html
+ *    from the library (always the current version of PLibESPV1 - do not edit them,
+ *    add your own routes in a separate file).
+ * 2. "npm run create-WebPages" - builds the pages into include/web/*.gz.h
+ * 3. Uncomment "#include <WebRoutes.h>" and "registerWebRoutes(oWebServer);" below.
  */
 #include <Arduino.h>
 #include <AppConfig.h>
@@ -23,7 +30,7 @@
 #include <MQTTController.h>
 #include <WebSocket.h>
 #include <WebServer.h>
-// #include <WebRoutes.h>   - if you have custom web routes, include your WebRoutes.h here
+// #include <WebRoutes.h>     // Web GUI - see header (sync-RuntimeFiles + create-WebPages)
 #include <DevelopmentHelper.h>
 
 
@@ -56,17 +63,26 @@ void runDebugTests() {
  */
 void registerModules() {
 
+  // Modules with configuration and status (wifi, mqtt, web)
   Appl.registerModule("wifi",&oWiFiController);
   Appl.registerModule("mqtt",&oMqttController);
   Appl.registerModule("web", &oWebServer);
-  // Register the configuration and status handlers
-  
+
+  // Register your own configuration and status handlers
+  // Appl.addConfigHandler("app", &oMyModule);
+  // Appl.addStatusHandler("app", &oMyModule);
+
   // Register the message receivers...
   // - React on Appl.dispatch() calls (MSG_APPL_LOOP message)
   // - offer module commands on the message bus for other modules
   Appl.MsgBus.registerEventReceiver(&oAppControl);
-  Appl.MsgBus.registerEventReceiver(&oWebSocket);     
+  // WebSocket: dispatches its message queue on MSG_APPL_LOOP and sends
+  // bus messages (i.e. WiFi scan results) to the clients
+  Appl.MsgBus.registerEventReceiver(&oWebSocket,"WebSocket");
 
+  // Home Assistant auto discovery - register your components
+  // oMqttController.registerHomeAssistantComponent("app", &oMyModule);
+  oMqttController.registerHomeAssistantComponent("wifi", &oWiFiController);
 }
 
 void setup() {
@@ -76,35 +92,43 @@ void setup() {
 
   registerModules();
 
-    // Initialize the application - this will send a MSG_APPL_INITIALIZED message
+  // Initialize the application - this will send a MSG_APPL_INITIALIZED message
   Appl.init(APP_NAME,APP_VERSION);
   Appl.sayHello();
-  
+
   bool bUseConfigData = Appl.readConfigFrom(CONFIG_FILE);
   Appl.printDiag();
-  Appl.Log.logInfo(F("Initializing services..."));
- 
-  // Initialize and start the WiFi
-  oWiFiController.startWiFi(bUseConfigData);
-  oMqttController.setup();
-  
-  // Prepare and start the Web Server
-  // enable registerWebRoutes if you have custom web routes (WebRoutes.cpp/h)
-  oWebServer.addHandler(&oWebSocket);
-  // registerWebRoutes(oWebServer);  
-  oWebServer.begin();
-  
+  ApplLogInfo(F("Initializing services..."));
 
-  Appl.Log.logInfo(F("Hello world... - let's start the show!"));
+  // Register the web routes BEFORE the WiFi is started: the server is started on
+  // MSG_WIFI_CONNECTED - requests (i.e. network scanners) must not hit a server,
+  // whose routes are still being registered.
+  ApplLogInfo(F("..initializing web"));
+  // registerWebRoutes(oWebServer);   // Web GUI - see header (sync-RuntimeFiles + create-WebPages)
+  oWebServer.addHandler(&oWebSocket);
+
+  // Start the WiFi and the web server
+  oWiFiController.startWiFi(bUseConfigData);
+  oWebServer.begin();         // ignored, if already started by MSG_WIFI_CONNECTED
+
+  ApplLogInfo(F("..initializing mqtt"));
+  oMqttController.setup();
+
+  ApplLogInfo(F("Hello world... - let's start the show!"));
   delay(200);
 
   #ifdef DEBUGINFOS
     runDebugTests();
   #endif
+  // Sends MSG_APPL_STARTED - i.e. MQTT publishes the Home Assistant discovery
+  Appl.start();
   DEBUG_FUNC_END();
 }
 
 void loop() {
-  Appl.dispatch(); // will send a MSG_APPL_LOOP message to all registered receivers
+  // Sends MSG_APPL_LOOP to all registered receivers - the library modules dispatch
+  // themselves there: WebSocket (message queue), MQTT, WiFi (scan, reconnect),
+  // WebServer (reboot after OTA)
+  Appl.dispatch();
   // put your main code here, to run repeatedly:
 }

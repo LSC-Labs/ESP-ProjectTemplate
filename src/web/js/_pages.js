@@ -6,6 +6,205 @@
  ***************************************************************************/
 
 /**
+  @PageBuilder:register(StatusPage,CStatusPage)
+ */
+
+class CStatusPage extends CPageHandler {
+    /**
+     * 
+     * @param {CAPP} oApp 
+     */
+    constructor(oApp) {
+        // don't use this, before initialized !
+        super("status",new CElement("#StatusPage"),oApp.Config);
+        this._App = oApp;
+       // this.Translator = new CTranslator();
+    }
+
+        
+    // #region Update Status on a regular base
+    disposePage(pView, pApp) {
+        super.disposePage(pView, pApp);
+        this.RefreshTimer = clearInterval(this.RefreshTimer);
+        this.RefreshTimer = null;
+    }
+
+    preparePage(pView, pApp) {
+        super.preparePage(pView, pApp);
+        // Set an interval to refresh the status infos every 5 seconds...
+        this.RefreshTimer = setInterval( this.refreshStatus.bind(this, pView, pApp), 5000);
+    }
+    
+    refreshStatus(pView, pApp) {
+        // System status (heap, flash, file system) is only sent by apiV1/sysstatus -
+        // request it also, otherwise the memory values stay at the values of the page load.
+        // The device returns the last snapshot and builds a new one (=> values max. one interval old).
+        pApp.requestActDeviceStatus();
+        pApp.requestActStatus();
+    }
+
+    /**
+     * Triggered, when a new status message is received from the web socket.
+     * @param {CView} pView 
+     * @param {CApp} pApp 
+     * @returns false to avoid loadPageConfig is called again (!) and the game starts again...
+     */
+    onUpdateStatusReceived(pView, pApp) {
+        this.loadPageConfig(pView, pApp);
+        return(false)
+    }
+    // #endregion
+
+
+
+
+    /**
+     * Load the page config...
+     * Request an actual status from the device...
+     * This will trigger an update message, which will be handled in onUpdate_status_Received.
+     * @param {CView} pView 
+     * @param {CApp} pApp 
+     */
+    loadPageConfig(pView, pApp) {
+        let oStatus = pApp.DeviceStatus;
+       
+        // set the root element infos - no prefix...
+        this.setConfigValues(pView,oStatus);
+        for(let strName in oStatus) {
+            let oData = oStatus[strName];
+            if(oData && Utils.isObj(oData)) {
+                this.setConfigValues(pView,oData,strName);
+            }
+        }
+
+        let oVars = new CVarTable();
+        oVars.setVars(pApp.tVars);
+        oVars.setVars(oStatus);
+        this.showMemoryUsage(pView, oStatus, oVars);
+        this.showBattery(pView, oStatus);
+        return(oStatus);
+    }
+
+    /**
+     * The battery row is only shown, if the device has a battery status handler ("bat")
+     * and a battery is connected (bat.available).
+     */
+    showBattery(pView, oStatus) {
+        let oRow = pView.sel("#batteryRow");
+        if(!oRow) return;
+        const bAvailable = !!(oStatus && Utils.isObj(oStatus.bat) && oStatus.bat.available === true);
+        oRow.style.display = bAvailable ? "" : "none";
+    }
+
+    // #region Memory usage (program memory, file system, heap)
+
+    /** value as KB (1 decimal for small values) */
+    static toKB(nBytes) {
+        const nKB = nBytes / 1024;
+        return(nKB < 100 ? Math.round(nKB * 10) / 10 : Math.round(nKB));
+    }
+
+    /** true, if all values are numbers */
+    static isNum(...tValues) {
+        return(tValues.every(n => typeof n === "number" && isFinite(n)));
+    }
+
+    /**
+     * Sets a usage bar (width, text, color) and the translated tooltip.
+     * @param {CView} pView
+     * @param {string} strSelector selector of the bar (.usageStatus element)
+     * @param {number} nPercent used in percent (0..100)
+     * @param {string} strText text inside the bar
+     * @param {boolean} bWarn true => warning color
+     * @param {string} strI18n i18n key of the tooltip
+     * @param {CVarTable} oVars vars for the tooltip
+     */
+    setUsageBar(pView, strSelector, nPercent, strText, bWarn, strI18n, oVars) {
+        let oBar = pView.sel(strSelector);
+        if(!oBar) return;
+        const nWidth = Math.min(100, Math.max(0, nPercent));
+        oBar.style.width = nWidth + "%";
+        oBar.innerText = strText;
+        let oUB = EC(oBar);
+        if(bWarn) oUB.rc("usageOK").ac("usageWarn");
+        else      oUB.ac("usageOK").rc("usageWarn");
+        (new CTranslator()).translateI18n(strI18n, undefined, oVars)
+            .then(str => { oUB.attr("title", str); });
+    }
+
+    /**
+     * Shows program memory, file system and heap usage.
+     *
+     * Program memory: the sketch area is sketch_size + sketch_free_size
+     * (sketch_free_size is the space for a new firmware - OTA update).
+     * An OTA update is only possible, if the new sketch fits into the free space
+     * => warning, if the current sketch is larger than the free space (> 50% on ESP8266).
+     */
+    showMemoryUsage(pView, oStatus, oVars) {
+        // Program memory (flash) / OTA
+        const nSketch = oStatus.sketch_size;
+        const nFree   = oStatus.sketch_free_size;
+        if(CStatusPage.isNum(nSketch, nFree) && (nSketch + nFree) > 0) {
+            const nArea    = nSketch + nFree;
+            const nPercent = Math.round(nSketch * 100 / nArea);
+            oVars.setVar("sketch_kb",          CStatusPage.toKB(nSketch));
+            oVars.setVar("sketch_free_kb",     CStatusPage.toKB(nFree));
+            oVars.setVar("sketch_area_kb",     CStatusPage.toKB(nArea));
+            oVars.setVar("flash_used_percent", nPercent);
+            const bWarn = nSketch > nFree;
+            this.setUsageBar(pView, "#flashUsage", nPercent,
+                             CStatusPage.toKB(nSketch) + " KB (" + nPercent + "%)",
+                             bWarn, bWarn ? "Status.memWarn" : "Status.memOK", oVars);
+        }
+
+        // File system - as text (a bar is not readable with a small usage)
+        let oFs = pView.sel("#fsUsage");
+        const nFsUsed  = oStatus.fs_used;
+        const nFsTotal = oStatus.fs_total;
+        if(oFs && CStatusPage.isNum(nFsUsed, nFsTotal) && nFsTotal > 0) {
+            const nPercent = Math.round(nFsUsed * 100 / nFsTotal);
+            oVars.setVar("fs_used_kb",      CStatusPage.toKB(nFsUsed));
+            oVars.setVar("fs_total_kb",     CStatusPage.toKB(nFsTotal));
+            oVars.setVar("fs_used_percent", nPercent);
+            const bWarn = nPercent >= 80;
+            let oEF = EC(oFs);
+            if(bWarn) oEF.ac("textWarn"); else oEF.rc("textWarn");
+            (new CTranslator()).translateI18n(bWarn ? "Status.fsWarn" : "Status.fsOK", undefined, oVars)
+                .then(str => { oFs.innerText = str; });
+        }
+
+        // Heap - ESP8266 has no total heap size, so free / largest block / fragmentation is shown.
+        // (heap_max is the largest block on ESP8266 - heap_max_block is the same value on all platforms)
+        let oHeap = pView.sel("#heapUsage");
+        const nHeapFree  = oStatus.heap_free;
+        const nHeapBlock = CStatusPage.isNum(oStatus.heap_max_block) ? oStatus.heap_max_block : oStatus.heap_max;
+        if(oHeap && CStatusPage.isNum(nHeapFree, nHeapBlock)) {
+            let nFrag = CStatusPage.isNum(oStatus.heap_frag)
+                            ? oStatus.heap_frag
+                            : (nHeapFree > 0 ? Math.round(100 - nHeapBlock * 100 / nHeapFree) : 0);
+            nFrag = Math.min(100, Math.max(0, nFrag));
+            oVars.setVar("heap_free_kb",  CStatusPage.toKB(nHeapFree));
+            oVars.setVar("heap_block_kb", CStatusPage.toKB(nHeapBlock));
+            oVars.setVar("heap_frag",     nFrag);
+            // Minimum free heap since start - a value that decreases over time indicates a leak
+            oVars.setVar("heap_min_kb",   CStatusPage.isNum(oStatus.heap_min) && oStatus.heap_min > 0
+                                            ? CStatusPage.toKB(oStatus.heap_min) : "-");
+            // Less than 8 KB free or a largest block below 4 KB: requests / TLS / JSON may fail
+            const bWarn = nHeapFree < 8192 || nHeapBlock < 4096 || nFrag > 50;
+            let oEH = EC(oHeap);
+            if(bWarn) oEH.ac("textWarn"); else oEH.rc("textWarn");
+            let oTranse = new CTranslator();
+            oTranse.translateI18n("Status.heapInfo", undefined, oVars)
+                .then(str => { oHeap.innerText = str; });
+            if(bWarn) oTranse.translateI18n("Status.heapWarn", undefined, oVars)
+                        .then(str => { oEH.attr("title", str); });
+            else oHeap.removeAttribute("title");
+        }
+    }
+
+    // #endregion
+}
+/**
  * The System Page with Restart / Reset
  * 
  * @PageBuilder:register(SystemPage,CSystemPage)
@@ -138,7 +337,8 @@ class CWiFiPage extends CPageHandler {
                     let oOpt = document.createElement("option");
                     oOpt.value = oListOfSSIDs[i].ssid;
                     oOpt.bssidvalue = oListOfSSIDs[i].bssid;
-                    oOpt.innerHTML = oListOfSSIDs[i].ssid + " (" + nPercent + "%) - " + oListOfSSIDs[i].bssid ;
+                    // textContent - the SSID is chosen by foreign networks and must not be interpreted as html
+                    oOpt.textContent = oListOfSSIDs[i].ssid + " (" + nPercent + "%) - " + oListOfSSIDs[i].bssid ;
                     oSelect.appendChild(oOpt);
                 }
             });
@@ -237,21 +437,69 @@ class CBackupPage extends CPageHandler {
  */
 class CFirmwarePage extends CPageHandler {
     _fwInstTime = 30;   // Time needed to install firmware..
+    _fwMaxHistory = 8;  // Max number of firmware history entries to show
     constructor(oApp) {
         super("firmware",EC("#FirmwarePage"),oApp.Config);
         this._App = oApp;
         
     }
 
+    /**
+     * 
+     * @param {*} oReleases 
+     * @returns the complete block ot the newest version
+     */
+    getNewestRelease(oReleases) {
+        let oMainRelease = {};
+        for(let oRelease of oReleases) {
+            if(oRelease.draft != undefined && oRelease.draft == false) {
+                oMainRelease = oRelease;
+                break;
+            }
+        }
+        return oMainRelease;
+    }
+
+    getReleasesStripped(oReleases) {
+        let oStripped = [];
+        let nCount = 0;
+        for(let oRelease of oReleases) {
+            if(oRelease.draft != undefined && oRelease.draft == false) {
+                let oAsset = oRelease.assets[0];
+                let oDTCreated = new Date(oAsset.created_at);
+                let oDTUpdated = new Date(oAsset.updated_at);
+                let strName = oRelease.name;
+                let strDateUpdated = oDTUpdated.toLocaleDateString();
+                let strDateCreated = oDTCreated.toLocaleDateString();
+                let strDate = strDateCreated + " / " + strDateUpdated;
+                oStripped.push({
+                    name: strName,
+                    date: strDate,
+                    updated_at: strDateUpdated,
+                    created_at: strDateCreated,
+                    desc: oRelease.body.replaceAll("\n","<br/>"),
+                    browser_download_url: oAsset.browser_download_url,
+                });
+                nCount++;
+                if(nCount >= this._fwMaxHistory) {
+                    break;
+                }
+            }
+        }
+        return oStripped;
+    }
+
+
     loadPageConfig(pView, pApp) {
         super.loadPageConfig(pView,pApp);
         EC("#fwSelect").on("change",this.onFile.bind(this));
-        let strURL = pApp.Settings.getData("app.latest.url");
+        let strURL = pApp.Settings.getData("app.firmware.list");
         fetch(strURL)
             .then((response) => {
                 return response.json();
             })
-            .then((oRelease) => {
+            .then((oReleases) => {
+                let oRelease = this.getNewestRelease(oReleases);
                 let oAsset = oRelease.assets[0];
                 let oDTCreated = new Date(oAsset.created_at);
                 let oDTUpdated = new Date(oAsset.updated_at)
@@ -261,8 +509,23 @@ class CFirmwarePage extends CPageHandler {
                 pView.sel("#Desc").innerHTML = oRelease.body.replaceAll("\n","<br/>");
                 pView.gel("#downloadupdate").attr("href",oAsset.browser_download_url);
                 pView.sel("#download").disabled = false;
+                let strReleasePage = pApp.Settings.getData("app.GitHubPage");
+                
+                if(strReleasePage) {
+                    let oLink = pView.gel("#fwReleasePageLink");
+                    oLink.attr("href",strReleasePage + "/releases");
+                    oLink.show();
+                }
+                let oHistory = pView.sel("#fwHistory");
+                for(let oRelease of this.getReleasesStripped(oReleases)) {
+                    let oDiv = document.createElement("div");
+                    oDiv.classList.add("release");
+                    oDiv.innerHTML = `<div><hr/><span class="fwReleaseName">${oRelease.name}</span> - ${oRelease.created_at}</div><hr/><div>${oRelease.desc}</div>`;
+                    oHistory.appendChild(oDiv);
+                }
             })
             .catch(ex => {
+                console.log("Error loading firmware list: " + ex);
             });
 
     }
@@ -300,9 +563,32 @@ class CFirmwarePage extends CPageHandler {
                     let oFormData = new FormData();
                     oFormData.append("bin", oFile, oFile.name);
                     
-                    fetch('/update',{ 
-                        method:'POST', 
+                    // The server needs an authentication for the update - use the access token
+                    // of the login (fetch() has no basic auth credentials).
+                    let oHeaders = {};
+                    let strToken = CSecurity.AccessToken;
+                    if(Utils.isString(strToken)) oHeaders["AUTHTOKEN"] = strToken;
+
+                    // On error: stop the wait dialog (no reboot follows) and show the reason
+                    let fnFailed = (strReason) => {
+                        clearInterval(oDlg._ActTimerID);
+                        oDlg.close();
+                        alert("Firmware update failed: " + strReason);
+                    };
+                    fetch('/update',{
+                        method:'POST',
+                        headers: oHeaders,
                         body: oFormData
+                    })
+                    .then(oResponse => {
+                        if(!oResponse.ok) {
+                            return oResponse.text().then(strText => fnFailed(oResponse.status + " - " + strText));
+                        }
+                    })
+                    .catch(ex => {
+                        // The device reboots after a successful update - a lost connection
+                        // after the upload is not an error, so only log it.
+                        console.log("Firmware update request: " + ex);
                     });
                     break;
             }
@@ -310,115 +596,14 @@ class CFirmwarePage extends CPageHandler {
     }
 
 }
-/**
-  @PageBuilder:register(StatusPage,CStatusPage)
- */
-
-class CStatusPage extends CPageHandler {
-    /**
-     * 
-     * @param {CAPP} oApp 
-     */
-    constructor(oApp) {
-        // don't use this, before initialized !
-        super("status",new CElement("#StatusPage"),oApp.Config);
-        this._App = oApp;
-       // this.Translator = new CTranslator();
-    }
-
-        
-    // #region Update Status on a regular base
-    disposePage(pView, pApp) {
-        super.disposePage(pView, pApp);
-        this.RefreshTimer = clearInterval(this.RefreshTimer);
-        this.RefreshTimer = null;
-    }
-
-    preparePage(pView, pApp) {
-        super.preparePage(pView, pApp);
-        // Set an interval to refresh the status infos every 5 seconds...
-        this.RefreshTimer = setInterval( this.refreshStatus.bind(this, pView, pApp), 5000);
-    }
-    
-    refreshStatus(pView, pApp) {
-        pApp.requestActStatus();
-    }
-
-    /**
-     * Triggered, when a new status message is received from the web socket.
-     * @param {CView} pView 
-     * @param {CApp} pApp 
-     * @returns false to avoid loadPageConfig is called again (!) and the game starts again...
-     */
-    onUpdateStatusReceived(pView, pApp) {
-        this.loadPageConfig(pView, pApp);
-        return(false)
-    }
-    // #endregion
-
-
-
-
-    /**
-     * Load the page config...
-     * Request an actual status from the device...
-     * This will trigger an update message, which will be handled in onUpdate_status_Received.
-     * @param {CView} pView 
-     * @param {CApp} pApp 
-     */
-    loadPageConfig(pView, pApp) {
-        let oStatus = pApp.DeviceStatus;
-       
-        // set the root element infos - no prefix...
-        this.setConfigValues(pView,oStatus);
-        for(let strName in oStatus) {
-            let oData = oStatus[strName];
-            if(oData && Utils.isObj(oData)) {
-                this.setConfigValues(pView,oData,strName);
-            }
-        }
-
-        let oVars = new CVarTable();
-        oVars.setVars(pApp.tVars);
-        oVars.setVars(oStatus);
-        
-        // now the usage bar
-        let nAvailableSize = oStatus.flash_size - oStatus.fs_total;
-        let nPercentUsed = (oStatus.sketch_size * 100) / nAvailableSize;
-        let oUsageBar =  pView.sel("#flashUsage");
-        if(oUsageBar) {
-            oVars.setVar("flash_used_percent",~~nPercentUsed);
-            oVars.setVar("flash_available",nAvailableSize);
-            oUsageBar.style.width = nPercentUsed + "%";
-            oUsageBar.innerText = ~~(oStatus.sketch_size / 1024) + " KB";
-            let oUB = EC(oUsageBar);
-            let oTranse = new CTranslator();
-            let strI18n = "Status.memOK";
-            if(nPercentUsed > 50) {
-                oUB.rc("usageOK").ac("usageWarn");
-                strI18n = "Status.memWarn";
-            } else {
-                oUB.ac("usageOK").rc("usageWarn");
-            }
-            oTranse.translateI18n(strI18n,undefined,oVars)
-                .then(str => { 
-                    oUB.attr("title",str)
-                }
-            )
-        }
-        return(oStatus);
-    }
-
-    
-}
 
 // Page Handler Registration
 function registerPageHandler(pApp) {
+    pApp.registerPageHandler("StatusPage",new CStatusPage(pApp));
     pApp.registerPageHandler("SystemPage",new CSystemPage(pApp));
     pApp.registerPageHandler("WiFiPage",new CWiFiPage(pApp));
     pApp.registerPageHandler("BackupPage",new CBackupPage(pApp));
     pApp.registerPageHandler("FirmwarePage",new CFirmwarePage(pApp));
-    pApp.registerPageHandler("StatusPage",new CStatusPage(pApp));
 }
 
 // End of Page Handler Registration

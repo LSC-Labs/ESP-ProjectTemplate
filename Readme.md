@@ -33,7 +33,17 @@ Files that are used to support your project.
 |src/web/js/settings.js| Contains the defaults for your Web GUI, like icons, menu structures and other settings you need at runtime.
 
 
-After setting up this files, use the "sync-Files" and the "build-Pages" npm functions. If you are using Visual Code as editor, you can start these scripts in the section "NPM SCRIPTS". These script can be started again, if you changed some modules and you need an update.
+After setting up this files, use the "sync-RuntimeFiles" and the "create-WebPages" npm functions. If you are using Visual Code as editor, you can start these scripts in the section "NPM SCRIPTS". These script can be started again, if you changed some modules and you need an update.
+
+- **sync-RuntimeFiles** copies the runtime files from PLibESPV1 into your project (scripts, index.html, runtime css/js, `src/WebRoutes.cpp` / `include/WebRoutes.h`). They are always updated from the library - do not edit them, add your own routes in a separate file.
+- **create-WebPages** builds the web pages listed in `pages.json` into `include/web/*.gz.h`, which are embedded into the firmware.
+
+The device can also be built without the web GUI. To enable it, run both scripts and uncomment `#include <WebRoutes.h>` and `registerWebRoutes(oWebServer);` in `src/main.cpp`.
+
+### Library versions and patches
+
+The library versions in `platformio.ini` are pinned to a tested combination (ESPAsyncTCP 2.0.0, ESPAsyncWebServer 3.10.0, AsyncMqttClient 0.9.0, ESP8266 core 3.1.2).
+`scripts/patchLibs.py` runs before every build and fixes a heap corruption in ESPAsyncTCP 2.0.0 (`AsyncClient::abort()`), which crashes ESP8266 devices on malformed requests, i.e. network scans. Keep it in `extra_scripts`, as long as ESPAsyncTCP 2.0.0 is used.
 
 
 

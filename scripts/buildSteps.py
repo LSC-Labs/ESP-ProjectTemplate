@@ -74,8 +74,8 @@ def writeVersionIncludeFile(oVersion):
 def updateJsonSettings(oVersion):
 	# Update the settings.js test file...
 	print("-> updating json settings")
-	strRegSearchProgName = "\"prog_name\"\s*:\s*\"([\-_A-Za-z0-9\s]*)\""
-	strRegSearchProgVer  = "\"prog_ver\"\s*:\s*\"([\.\-_A-Z0-9]*)\""
+	strRegSearchProgName = r"\"prog_name\"\s*:\s*\"([\-A-Za-z0-9_\s]*)\""
+	strRegSearchProgVer  = r"\"prog_ver\"\s*:\s*\"([.\-A-Z0-9_]*)\""
 	if os.path.exists(SETTINGS_FILE):
 		tLines = []
 		with open(SETTINGS_FILE, 'r') as oFP:
@@ -114,7 +114,10 @@ def getVersionStringOf(oVersion):
 	
 
 def getTargetFirmwareName(env):
-	strFileName = env.subst("$PIOENV")
+	projectPath = env['PROJECT_DIR']
+	# os.path.basename extrahiert daraus nur den letzten Ordnernamen (den Projektnamen)
+	projectName = os.path.basename(projectPath)
+	strFileName = projectName + " - " + env.subst("$PIOENV")
 	if strFileName.endswith("_debug"):
 		strFileName +=  " (firmware).bin"
 	else:
@@ -234,5 +237,4 @@ print("---------------------------------------------------------------")
 # Pre will be triggered by main.cpp compiler.
 env.AddPostAction("buildprog", after_build)
 env.AddPreAction("$BUILD_DIR/src/main.cpp.o", before_build)
-
 

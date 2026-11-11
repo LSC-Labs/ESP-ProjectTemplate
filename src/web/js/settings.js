@@ -20,8 +20,10 @@ const APP_SETTINGS = {
         "ws": {
             "recon": true,  // Enable WebSocket reconnection- disable for testing to avoid messages in the html console
         },
-        "latest": {
-            "url": "https://api.github.com/repos/LSC-Labs/ESP-ProjectTemplate/releases/latest"
+        // GitHub releases of your project - used by the Firmware page (release history / update check)
+        "firmware": {
+            "list": "https://api.github.com/repos/LSC-Labs/ESP-ProjectTemplate/releases",
+            "latest": "https://api.github.com/repos/LSC-Labs/ESP-ProjectTemplate/releases/latest"
         },
         "GitHubPage": "https://github.com/LSC-Labs/ESP-ProjectTemplate",
         "mailto":"youroffice@yourdomain.de?subject=$(prog_name) - v$(prog_ver)"
